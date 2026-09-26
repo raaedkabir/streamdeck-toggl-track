@@ -1,6 +1,6 @@
 {
 	"Name": "Toggl Track",
-	"Version": "0.1.0",
+	"Version": "0.1.0.0",
 	"Author": "Raaed Kabir",
 	"Actions": [
 		{
@@ -24,14 +24,14 @@
 	"CodePath": "bin/plugin.js",
 	"Description": "Integrate Toggl Track with your Stream Deck",
 	"Icon": "imgs/plugin/marketplace",
-	"SDKVersion": 2,
+	"SDKVersion": 3,
 	"Software": {
-		"MinimumVersion": "6.5"
+		"MinimumVersion": "7.1"
 	},
 	"OS": [
 		{
 			"Platform": "mac",
-			"MinimumVersion": "10.15"
+			"MinimumVersion": "12"
 		},
 		{
 			"Platform": "windows",
@@ -39,7 +39,7 @@
 		}
 	],
 	"Nodejs": {
-		"Version": "20",
+		"Version": "24",
 		"Debug": "enabled"
 	},
 	"UUID": "com.raaedkabir.toggl-track"
