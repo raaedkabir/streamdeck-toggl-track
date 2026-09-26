@@ -1,11 +1,20 @@
 {
-	"scripts": {
-		"build": "rollup -c",
-		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.raaedkabir.toggl-track\""
-	},
+	"name": "streamdeck-toggl-track",
+	"private": true,
+	"license": "MIT",
 	"type": "module",
 	"engines": {
 		"node": ">=24"
+	},
+	"scripts": {
+		"build": "rollup -c",
+		"watch": "rollup -c -w --watch.onEnd=\"streamdeck restart com.raaedkabir.toggl-track\"",
+		"link": "streamdeck link com.raaedkabir.toggl-track.sdPlugin",
+		"validate": "streamdeck validate com.raaedkabir.toggl-track.sdPlugin",
+		"pack": "npm run build && streamdeck pack com.raaedkabir.toggl-track.sdPlugin --output dist --force"
+	},
+	"dependencies": {
+		"@elgato/streamdeck": "^3.0.0"
 	},
 	"devDependencies": {
 		"@elgato/cli": "^1.10.0",
@@ -18,8 +27,5 @@
 		"rollup": "^4.63.5",
 		"tslib": "^2.8.1",
 		"typescript": "^5.9.3"
-	},
-	"dependencies": {
-		"@elgato/streamdeck": "^3.0.0"
 	}
 }

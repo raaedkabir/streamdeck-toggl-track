@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Timer Settings</title>
+    <!-- https://sdpi-components.dev/releases/v4/sdpi-components.js -->
+    <script src="sdpi-components.js"></script>
+    <style>
+      #status {
+        color: #f0a868;
+        margin: 0;
+        padding: 4px 0;
+      }
+
+      /* A collapsible list styled like sdpi-components' inputs. */
+      .dropdown summary {
+        background-color: #3d3d3d;
+        color: #d8d8d8;
+        cursor: pointer;
+        font-family: 'Segoe UI', Arial, Roboto, Helvetica, sans-serif;
+        font-size: 9pt;
+        list-style: none;
+        overflow: hidden;
+        padding: 7px 24px 7px 4px;
+        position: relative;
+        text-overflow: ellipsis;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      .dropdown summary::-webkit-details-marker {
+        display: none;
+      }
+
+      /* A chevron, like the selects' arrows. */
+      .dropdown summary::after {
+        border: solid #d8d8d8;
+        border-width: 0 1.5px 1.5px 0;
+        content: '';
+        height: 5px;
+        position: absolute;
+        right: 8px;
+        top: calc(50% - 5px);
+        transform: rotate(45deg);
+        width: 5px;
+      }
+
+      .dropdown[open] summary::after {
+        top: calc(50% - 1px);
+        transform: rotate(-135deg);
+      }
+
+      .dropdown summary.placeholder {
+        color: #969696;
+      }
+
+      .dropdown-options {
+        max-height: 160px;
+        overflow-y: auto;
+        padding: 4px 0 0 4px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Learn more about property inspector components at https://sdpi-components.dev/docs/components -->
+
+    <!-- Saved to global settings so every key shares it, and it's left out of exported profiles. -->
+    <sdpi-item label="API Token">
+      <sdpi-password setting="apiToken" global placeholder="Paste your Toggl API token"></sdpi-password>
+    </sdpi-item>
+    <sdpi-item>
+      <p id="status" hidden></p>
+      <sdpi-button data-url="https://track.toggl.com/profile">Get your API token</sdpi-button>
+    </sdpi-item>
+
+    <sdpi-item label="Description">
+      <sdpi-textfield setting="description" placeholder="What are you working on?"></sdpi-textfield>
+    </sdpi-item>
+
+    <!-- Options are supplied by the plugin, which caches them to save requests from Toggl's hourly quota. -->
+    <sdpi-item label="Workspace">
+      <sdpi-select
+        setting="workspaceId"
+        datasource="workspaces"
+        hot-reload
+        show-refresh
+        placeholder="Choose a workspace"
+      ></sdpi-select>
+    </sdpi-item>
+    <sdpi-item label="Project">
+      <sdpi-select setting="projectId" datasource="projects" hot-reload show-refresh></sdpi-select>
+    </sdpi-item>
+    <sdpi-item label="Tags">
+      <details class="dropdown">
+        <summary id="tags-summary" class="placeholder">Loading...</summary>
+        <div class="dropdown-options">
+          <sdpi-checkbox-list setting="tagIds" datasource="tags" hot-reload></sdpi-checkbox-list>
+        </div>
+      </details>
+    </sdpi-item>
+
+    <script>
+      const { streamDeckClient } = SDPIComponents;
+      const status = document.getElementById('status');
+      const workspace = document.querySelector('sdpi-select[setting="workspaceId"]');
+      const project = document.querySelector('sdpi-select[setting="projectId"]');
+      const tags = document.querySelector('sdpi-checkbox-list[setting="tagIds"]');
+      const tagsSummary = document.getElementById('tags-summary');
+
+      // Open links in the default browser.
+      for (const button of document.querySelectorAll('sdpi-button[data-url]')) {
+        button.addEventListener('click', () => streamDeckClient.send('openUrl', { url: button.dataset.url }));
+      }
+
+      // The closed tags dropdown lists the chosen tags by name.
+      const tagNames = new Map();
+      let noTagsText = 'Loading...';
+      const summarizeTags = () => {
+        const names = (tags.value ?? []).map((id) => tagNames.get(String(id))).filter((name) => name !== undefined);
+        tagsSummary.textContent = names.length > 0 ? names.join(', ') : noTagsText;
+        tagsSummary.title = names.join(', ');
+        tagsSummary.classList.toggle('placeholder', names.length === 0);
+      };
+      tags.addEventListener('valuechange', summarizeTags);
+
+      streamDeckClient.sendToPropertyInspector.subscribe(({ payload }) => {
+        switch (payload?.event) {
+          // The plugin reports problems with the API token, or with reaching Toggl.
+          case 'status':
+            status.textContent = payload.message;
+            status.hidden = !payload.message;
+            break;
+
+          // With nothing to choose from, the plugin sends a single disabled item saying why.
+          case 'tags':
+            tagNames.clear();
+            for (const item of payload.items) {
+              if (!item.disabled) {
+                tagNames.set(item.value, item.label);
+              }
+            }
+
+            noTagsText = tagNames.size > 0 ? 'None' : (payload.items[0]?.label ?? 'None');
+            summarizeTags();
+            break;
+        }
+      });
+
+      // Projects and tags belong to a workspace, so clear them when a different workspace is chosen.
+      let lastWorkspace;
+      workspace.addEventListener('valuechange', () => {
+        if (lastWorkspace !== undefined && workspace.value !== lastWorkspace) {
+          project.value = '';
+          tags.value = [];
+        }
+
+        lastWorkspace = workspace.value;
+      });
+    </script>
+  </body>
+</html>

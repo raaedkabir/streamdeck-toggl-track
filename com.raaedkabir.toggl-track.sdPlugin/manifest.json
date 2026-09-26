@@ -1,28 +1,41 @@
 {
-	"Name": "Toggl Track",
-	"Version": "0.1.0.0",
+	"Name": "Timer for Toggl Track",
+	"Version": "1.0.0.0",
 	"Author": "Raaed Kabir",
 	"Actions": [
 		{
-			"Name": "Counter",
-			"UUID": "com.raaedkabir.toggl-track.increment",
-			"Icon": "imgs/actions/counter/icon",
-			"Tooltip": "Displays a count, which increments by one on press.",
+			"Name": "Timer",
+			"UUID": "com.raaedkabir.toggl-track.timer",
+			"Icon": "imgs/actions/timer/icon",
+			"Tooltip": "Starts or stops a Toggl Track time entry.",
+			"PropertyInspectorPath": "ui/timer.html",
+			"DisableAutomaticStates": true,
+			"SupportedInMultiActions": true,
 			"Controllers": [
 				"Keypad"
 			],
 			"States": [
 				{
-					"Image": "imgs/actions/counter/key",
-					"TitleAlignment": "middle"
+					"Name": "Stopped",
+					"Image": "imgs/actions/timer/off",
+					"TitleAlignment": "bottom",
+					"FontSize": 12
+				},
+				{
+					"Name": "Running",
+					"Image": "imgs/actions/timer/on",
+					"TitleAlignment": "bottom",
+					"FontSize": 12
 				}
 			]
 		}
 	],
-	"Category": "Toggl Track",
+	"Category": "Timer for Toggl Track",
 	"CategoryIcon": "imgs/plugin/category-icon",
 	"CodePath": "bin/plugin.js",
-	"Description": "Integrate Toggl Track with your Stream Deck",
+	"Description": "Start and stop Toggl Track time entries from your Stream Deck. Give a key a description, project, and tags, then press it to start tracking, and press it again to stop. While an entry runs, its key shows the project's color and the elapsed time, and identical keys stay in sync across profiles. Timers started or stopped in other Toggl apps appear on your keys within five minutes, and multi-actions can start or stop an entry as one of their steps. Built for Toggl Track's Free plan, it checks for changes sparingly to stay within Toggl's hourly API limits. Requires a Toggl Track account and its API token, and Stream Deck 7.1 or later on Windows 10 or macOS 12 or later. Not affiliated with Toggl.",
+	"URL": "https://github.com/raaedkabir/streamdeck-toggl-track",
+	"SupportURL": "https://github.com/raaedkabir/streamdeck-toggl-track/issues",
 	"Icon": "imgs/plugin/marketplace",
 	"SDKVersion": 3,
 	"Software": {

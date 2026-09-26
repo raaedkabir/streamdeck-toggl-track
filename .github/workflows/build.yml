@@ -1,0 +1,54 @@
+# Builds, validates, and packages the plugin. Pushing a tag such as v1.0.0 also publishes the package as a GitHub release.
+name: Build
+
+on:
+  push:
+    branches: [master, main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Check the tag matches the manifest's version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          # The manifest's version has four parts, so v1.2.3 matches 1.2.3.0.
+          version=$(node -p "require('./com.raaedkabir.toggl-track.sdPlugin/manifest.json').Version")
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$version" != "$tag" && "$version" != "$tag.0" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match the manifest's version, $version"
+            exit 1
+          fi
+
+      - run: npm ci
+      # Builds, validates, and writes dist/com.raaedkabir.toggl-track.streamDeckPlugin.
+      - run: npm run pack
+      - uses: actions/upload-artifact@v7
+        with:
+          name: plugin
+          path: dist/*.streamDeckPlugin
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: plugin
+      - run: gh release create "$GITHUB_REF_NAME" *.streamDeckPlugin --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
